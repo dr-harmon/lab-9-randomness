@@ -31,7 +31,7 @@ In C++, we can access the system's PRNG by invoking the [`rand`](https://en.cppr
 Try this:
 
 1. In `main.cpp`, write a loop to call `rand` five times and print out the random number that it generates.
-2. Run the program three times.
+2. Run the program at least three times.
 
 Compare the output of the runs. Is the output random or predictable?
 
@@ -40,7 +40,7 @@ By default, `rand()` uses the same seed every time. To get a more "random" rando
 Try this:
 
 1. Before the loop, add a call to `srand` and pass it your favorite number as the seed.
-2. Run the program three times.
+2. Run the program at least three times.
 
 Compare the output of the runs. Is the output random or predictable?
 
@@ -49,9 +49,23 @@ Since the seed is fixed, the "random" sequence is also fixed. Ideally, on each r
 Try this:
 
 1. Change the `srand` call to `srand(time(nullptr))`.
-2. Run the program three times.
+2. Run the program at least three times.
 
 Compare the output of the runs. What do you observe? How would you judge the quality of the randomness?
+
+You may have noticed that the output of `rand` still doesn't seem very random. Seeding the PRNG with similar consecutive numbers ruins the statistical properties of the generator. Also, `time` returns a value in seconds, so if you happen to run the program quickly enough (twice within the same second) the PRNG will be seeded with the same value both times.
+
+Starting in C++11, an improved PRNG became available in the standard library. It includes a seed generator called [random_device](https://en.cppreference.com/w/cpp/numeric/random/random_device) that uses a hardware-based seed (if available). The seed from `random_device` can then be fed into a PRNG algorithm such as [Mersenne Twister](https://en.wikipedia.org/wiki/Mersenne_Twister), which is implemented in the [mt19937](https://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine) class. A sequence of random numbers can then be produced using a class such as [uniform_int_distribution](https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution).
+
+Try this:
+
+1. Create an instance of `random_device` called `rd`.
+2. Create an instance of `mt19937` called `mt` and pass a seed to its constructor by calling `rd()`.
+3. Create an instance of `uniform_int_distribution<int>` called `dist` and initialize it with a range of your choce (e.g., `dist(0, 3)`).
+4. Generate and print a random number by calling `dist(mt)`.
+5. Run the program at least three times.
+
+Compare the output of the runs. Does it look a little "more random" than `rand` with `srand`?
 
 ## Shuffle Algorithm from Psuedocode
 
@@ -64,6 +78,19 @@ Luckily, an algorithm that has been proven correct, unbiased, and efficient alre
         j ← random integer such that 0 ≤ j ≤ i
         exchange a[j] and a[i]
 
-Your next task in this lab is to translate the above pseudocode into C++. Put the code in a function called `shuffle` with its declaration in `shuffle.h` and its implementation in `shuffle.cpp`. Write a simple test for it in `main.cpp` that replaces the previous `rand` and `srand` code.
+Your next task in this lab is to translate the above pseudocode into C++:
 
-Note that `rand` always returns a number in the range 0 to `RAND_MAX` (inclusive). To get random numbers in a different range, use one of the techniques described in [comp.lang.c FAQ Question 13.16](https://c-faq.com/lib/randrange.html).
+1. In `shuffle.h`, define a function `shuffle` that takes a vector of integers (`std::vector<int>`) as input.
+2. Using the pseudocode above as a guide, implement the `shuffle` function in `shuffle.cpp`.
+3. Test the function in `main`, replacing the previous `rand` and `srand` code.
+
+Hints:
+* To generate the random integer, use `random_device`, `mt19937`, and `uniform_int_distribution`, not `rand` and `srand`.
+* Be sure to test edge cases:
+    * An empty vector
+    * A vector of one element
+    * A vector of two elements
+
+## More Information
+
+If you would like a deeper explanation of PRNGs in C++, watch [rand() Considered Harmful](https://learn.microsoft.com/en-us/events/goingnative-2013/rand-considered-harmful) by Stephan T. Lavavej.
